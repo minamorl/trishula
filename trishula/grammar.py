@@ -128,6 +128,7 @@ class Map(OperatorMixin):
     def __init__(self, a, b):
         self.a = a
         self.b = b
+
     def parse(self, target, i):
         result = self.a.parse(target, i)
         return self.b(result)

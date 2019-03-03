@@ -34,6 +34,14 @@ class OperatorMixin:
         return Map(self, other)
 
 
+class Ref:
+    def __init__(self, ref):
+        self.ref = ref
+
+    def parse(self, target, i):
+        return self.ref().parse(target, i)
+
+
 class Sequence(OperatorMixin):
     def __init__(self, a, b):
         self.a = a

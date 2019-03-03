@@ -2,6 +2,8 @@
 
 Trishula is a parser combinator library extended PEG syntaxes, inspired by Parsimmon(ES) and boost::spirit::qi(C++).
 
+Trishula supports python version >= 3.7.0
+
 ## Examples
 
 ```python

@@ -8,7 +8,7 @@ Trishula is a parser combinator library extended PEG syntaxes, inspired by Parsi
 grammar = (
     Value("aaa")
     >> (Value("bbb") | Value("ccc"))
-    >> +Value("eee")
+    >> (+Value("eee") @ (lambda x: Node(x.status, x.index, "modified")))
     >> -Value("f")
     >> Value("g")
     >> Regexp(r"a+")
@@ -20,7 +20,7 @@ print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
 # {
 #      'status': <Status.SUCCEED: 1>,
 #      'index': 23,
-#      'value': [[[[[['aaa', 'ccc'], ['eee', 'eee', 'eee', 'eee']], 'f'], 'g'], 'aaa'], None]
+#      'value': [[[[[['aaa', 'ccc'], 'modified'], 'f'], 'g'], 'aaa'], None]
 # }
 ```
 
@@ -39,5 +39,6 @@ As mentioned above, Trishula uses many operator overloads to make definition of 
 | ~ | ZeroOrMore |
 | + | OneOrMore |
 | - | Optional |
+| @ | Map |
 
 and we have classes named **Not** and **And**, which are made for prediction.

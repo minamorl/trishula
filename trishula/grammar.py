@@ -30,6 +30,9 @@ class OperatorMixin:
     def __neg__(self):
         return Optional(self)
 
+    def __matmul__(self, other):
+        return Map(self, other)
+
 
 class Sequence(OperatorMixin):
     def __init__(self, a, b):
@@ -121,6 +124,15 @@ class Not(OperatorMixin):
         return Node(Status.SUCCEED, i)
 
 
+class Map(OperatorMixin):
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+    def parse(self, target, i):
+        result = self.a.parse(target, i)
+        return self.b(result)
+
+
 class Regexp(OperatorMixin):
     def __init__(self, regexp):
         if isinstance(regexp, re.Pattern):
@@ -152,7 +164,7 @@ class Parser:
 grammar = (
     Value("aaa")
     >> (Value("bbb") | Value("ccc"))
-    >> +Value("eee")
+    >> (+Value("eee") @ (lambda x: Node(x.status, x.index, "modified")))
     >> -Value("f")
     >> Value("g")
     >> Regexp(r"a+")
@@ -161,4 +173,4 @@ grammar = (
 # This works
 print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
 
-# {'status': <Status.SUCCEED: 1>, 'index': 23, 'value': [[[[[['aaa', 'ccc'], ['eee', 'eee', 'eee', 'eee']], 'f'], 'g'], 'aaa'], None]}
+# {'status': <Status.SUCCEED: 1>, 'index': 23, 'value': [[[[[['aaa', 'ccc'], 'modified'], 'f'], 'g'], 'aaa'], None]}

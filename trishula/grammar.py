@@ -24,9 +24,6 @@ class OperatorMixin:
     def __invert__(self):
         return ZeroOrMore(self)
 
-    def __invert__(self):
-        return ZeroOrMore(self)
-
     def __pos__(self):
         return OneOrMore(self)
 

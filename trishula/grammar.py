@@ -160,18 +160,3 @@ class Parser:
             result.index,
             result.value,
         )
-
-
-grammar = (
-    Value("aaa")
-    >> (Value("bbb") | Value("ccc"))
-    >> (+Value("eee") @ (lambda x: Node(x.status, x.index, "modified")))
-    >> -Value("f")
-    >> Value("g")
-    >> Regexp(r"a+")
-    >> Not(Value("hhh"))
-)
-# This works
-print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
-
-# {'status': <Status.SUCCEED: 1>, 'index': 23, 'value': [[[[[['aaa', 'ccc'], 'modified'], 'f'], 'g'], 'aaa'], None]}

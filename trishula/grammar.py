@@ -55,7 +55,7 @@ class OrderedChoice(OperatorMixin):
     def parse(self, target, i):
         resultA = self.a.parse(target, i)
         if resultA.status is Status.SUCCEED:
-            return Node(Status.SUCCEED, resuluA.index, resultA.value)
+            return Node(Status.SUCCEED, resultA.index, resultA.value)
         resultB = self.b.parse(target, resultA.index)
         if resultB.status is Status.SUCCEED:
             return Node(Status.SUCCEED, resultB.index, resultB.value)

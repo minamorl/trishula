@@ -30,7 +30,7 @@ Grammers can be defined by **Value** and **Regexp** primitive and operators. Bel
 
 ## Operators
 
-As mentioned avobe, Trishula uses many operator overloads to make definition of parsers be easier.
+As mentioned above, Trishula uses many operator overloads to make definition of parsers be easier.
 
 | operator | result |
 ----|---- 

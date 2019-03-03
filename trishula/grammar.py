@@ -19,7 +19,7 @@ class OperatorMixin:
         return Sequence(self, other)
 
     def __or__(self, other):
-        return OrderedChoise(self, other)
+        return OrderedChoice(self, other)
 
     def __invert__(self):
         return ZeroOrMore(self)
@@ -44,7 +44,7 @@ class Sequence(OperatorMixin):
         return Node(Status.FAILED, i)
 
 
-class OrderedChoise(OperatorMixin):
+class OrderedChoice(OperatorMixin):
     def __init__(self, a, b):
         self.a = a
         self.b = b

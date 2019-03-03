@@ -163,9 +163,5 @@ grammar = (
 )
 # This works
 print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
-# ==>
-# {
-#    'status': <Status.SUCCEED: 1>,
-#    'index': 23,
-#    'value': [[[[['aaa', 'ccc'], ['eee', 'eee', 'eee', 'eee']], 'f'], 'g'], 'aaa']}
-# }
+
+# {'status': <Status.SUCCEED: 1>, 'index': 23, 'value': [[[[[['aaa', 'ccc'], ['eee', 'eee', 'eee', 'eee']], 'f'], 'g'], 'aaa'], None]}

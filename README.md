@@ -26,7 +26,7 @@ print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
 
 ## Description
 
-Grammers can be defined by **Value** primitive and operators. Below we describe operators.
+Grammers can be defined by **Value** and **Regexp** primitive and operators. Below we describe operators.
 
 ## Operators
 

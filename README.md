@@ -36,7 +36,7 @@ As mentioned avobe, Trishula uses many operator overloads to make definition of 
 ----|---- 
 | >> | Sequence |
 | \| | OrderedChoise |
-| ~ | ZeroOrMOre |
+| ~ | ZeroOrMore |
 | + | OneOrMore |
 | - | Optional |
 

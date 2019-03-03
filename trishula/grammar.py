@@ -109,7 +109,7 @@ class And(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        return Node(result.status, i, result.value)
+        return Node(result.status, i)
 
 
 class Not(OperatorMixin):
@@ -118,9 +118,10 @@ class Not(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
+        epsParser = Value("")
         if result.status is Status.SUCCEED:
-            return Node(Status.FAILED, i, result.value)
-        return Node(Status.SUCCEED, i, result.value)
+            return Node(Status.FAILED, i)
+        return Node(Status.SUCCEED, i)
 
 
 class Regexp(OperatorMixin):
@@ -158,7 +159,8 @@ grammar = (
     >> -Value("f")
     >> Value("g")
     >> Regexp(r"a+")
-)  # >> Not(Value("hhh"))
+    >> Not(Value("hhh"))
+)
 # This works
 print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
 # ==>

@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import re
 
 class Status(Enum):
     SUCCEED = auto()
@@ -107,14 +108,30 @@ class Not(OperatorMixin):
         return Node(Status.SUCCEED, i, result.value)
 
 
+class Regexp(OperatorMixin):
+    def __init__(self, regexp):
+        if isinstance(regexp, re.Pattern):
+            regexp = regexp.pattern
+        self.regexp = regexp
+    def _anchored(self, regexp):
+        regexp = f"^{self.regexp}"
+        return regexp
+    def parse(self, target, i):
+        regexp = self._anchored(self.regexp)
+        matched = re.match(regexp, target[i:])
+        if matched:
+            return Node(Status.SUCCEED, i + matched.end(), matched.group())
+        return Node(Status.FAILED, i)
+
+
 class Parser:
     def parse(self, grammar, string):
         result = grammar.parse(string, 0)
         return Node(Status.SUCCEED if result.index == len(string) else Status.FAILED, result.index, result.value)
 
 
-grammar = Value("aaa") >> (Value("bbb") | Value("ccc")) >> +Value("eee") >> -Value("f") >> Value("g") # >> Not(Value("hhh"))
+grammar = Value("aaa") >> (Value("bbb") | Value("ccc")) >> +Value("eee") >> -Value("f") >> Value("g") >> Regexp(r"a+")# >> Not(Value("hhh"))
 # This works
-print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefg")))
+print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
 # ==>
-# {'status': <Status.SUCCEED: 1>, 'index': 20, 'value': [[[['aaa', 'ccc'], ['eee', 'eee', 'eee', 'eee']], 'f'], 'g']}
+# {'status': <Status.SUCCEED: 1>, 'index': 23, 'value': [[[[['aaa', 'ccc'], ['eee', 'eee', 'eee', 'eee']], 'f'], 'g'], 'aaa']}

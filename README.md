@@ -10,7 +10,7 @@ Trishula supports python version >= 3.7.0
 grammar = (
     Value("aaa")
     >> (Value("bbb") | Value("ccc"))
-    >> (+Value("eee") @ (lambda x: Node(x.status, x.index, "modified")))
+    >> (+Value("eee") >= (lambda x: "modified"))
     >> -Value("f")
     >> Value("g")
     >> Regexp(r"a+")
@@ -42,6 +42,7 @@ As mentioned above, Trishula uses many operator overloads to make definition of 
 | + | OneOrMore |
 | - | Optional |
 | >= | Map |
+| @ | NamedParser |
 
 and we have classes named **Not** and **And**, which are made for prediction.
 

@@ -37,9 +37,12 @@ class OperatorMixin:
 class Ref:
     def __init__(self, ref):
         self.ref = ref
+        self.parser = None
 
     def parse(self, target, i):
-        return self.ref().parse(target, i)
+        if self.parser is None
+            self.parser = self.ref()
+        return self.parser.parse(target, i)
 
 
 class Sequence(OperatorMixin):

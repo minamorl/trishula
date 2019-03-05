@@ -2,6 +2,7 @@ from trishula.grammar import (
     Regexp,
     And,
     Map,
+    FlatMap,
     Node,
     Not,
     OneOrMore,

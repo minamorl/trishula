@@ -44,3 +44,27 @@ As mentioned above, Trishula uses many operator overloads to make definition of 
 | >= | Map |
 
 and we have classes named **Not** and **And**, which are made for prediction.
+
+
+## Recursion
+
+Trishula supports recursion with `Ref`. Recursion can be written like this:
+
+```python
+def grammar():
+   return (
+        (Value("[]") >= (lambda x: [])) |
+        ((
+            Value("[") >>
+            Ref(grammar) >>
+            Value("]")
+        ) >= (lambda x: [x[0][1]]))
+    )
+
+def main():
+    result = Parser().parse(grammar(), "[[[]]]")
+    print(vars(result))
+    # => {'status': <Status.SUCCEED: 1>, 'index': 6, 'value': [[[]]]}
+```
+
+Be aware that `Ref` executes function only once so that parser can be memorized.

@@ -51,7 +51,12 @@ class Sequence(OperatorMixin):
         resultA = self.a.parse(target, i)
         if resultA.status is Status.SUCCEED:
             resultB = self.b.parse(target, resultA.index)
-            return Node(Status.SUCCEED, resultB.index, [resultA.value, resultB.value])
+            if resultB.status is Status.SUCCEED:
+                return Node(
+                    Status.SUCCEED,
+                    resultB.index,
+                    [resultA.value, resultB.value]
+                )
         return Node(Status.FAILED, i)
 
 

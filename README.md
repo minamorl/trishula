@@ -41,6 +41,6 @@ As mentioned above, Trishula uses many operator overloads to make definition of 
 | ~ | ZeroOrMore |
 | + | OneOrMore |
 | - | Optional |
-| @ | Map |
+| >= | Map |
 
 and we have classes named **Not** and **And**, which are made for prediction.

@@ -30,7 +30,7 @@ class OperatorMixin:
     def __neg__(self):
         return Optional(self)
 
-    def __matmul__(self, other):
+    def __ge__(self, other):
         return Map(self, other)
 
 
@@ -40,7 +40,7 @@ class Ref:
         self.parser = None
 
     def parse(self, target, i):
-        if self.parser is None
+        if self.parser is None:
             self.parser = self.ref()
         return self.parser.parse(target, i)
 
@@ -147,7 +147,8 @@ class Map(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        return self.b(result)
+        result.value = self.b(result.value)
+        return result
 
 
 class Regexp(OperatorMixin):

@@ -8,10 +8,11 @@ class Status(Enum):
 
 
 class Node:
-    def __init__(self, status, index, value=None):
+    def __init__(self, status, index, value=None, namespace=None):
         self.status = status
         self.index = index
         self.value = value
+        self.namespace = namespace or dict()
 
 
 class OperatorMixin:
@@ -33,6 +34,9 @@ class OperatorMixin:
     def __ge__(self, other):
         return Map(self, other)
 
+    def __matmul__(self, other):
+        return NamedParser(self, other)
+
 
 class Ref:
     def __init__(self, ref):
@@ -45,6 +49,29 @@ class Ref:
         return self.parser.parse(target, i)
 
 
+class NamedParser(OperatorMixin):
+    def __init__(self, parser, name):
+        self.parser = parser
+        self.name = name
+
+    def parse(self, target, i):
+        result = self.parser.parse(target, i)
+        result.namespace[self.name] = result.value
+        return result
+
+
+class Namespace(OperatorMixin):
+    def __init__(self, parser):
+        self.parser = parser
+
+    def parse(self, target, i):
+        result = self.parser.parse(target, i)
+        return result
+
+    def __ge__(self, other):
+        return NamespaceMap(self, other)
+
+
 class Sequence(OperatorMixin):
     def __init__(self, a, b):
         self.a = a
@@ -55,10 +82,13 @@ class Sequence(OperatorMixin):
         if resultA.status is Status.SUCCEED:
             resultB = self.b.parse(target, resultA.index)
             if resultB.status is Status.SUCCEED:
+                namespace = resultA.namespace
+                namespace.update(resultB.namespace)
                 return Node(
                     Status.SUCCEED,
                     resultB.index,
-                    [resultA.value, resultB.value]
+                    [resultA.value, resultB.value],
+                    namespace,
                 )
         return Node(Status.FAILED, i)
 
@@ -71,10 +101,10 @@ class OrderedChoice(OperatorMixin):
     def parse(self, target, i):
         resultA = self.a.parse(target, i)
         if resultA.status is Status.SUCCEED:
-            return Node(Status.SUCCEED, resultA.index, resultA.value)
+            return Node(Status.SUCCEED, resultA.index, resultA.value, resultA.namespace)
         resultB = self.b.parse(target, resultA.index)
         if resultB.status is Status.SUCCEED:
-            return Node(Status.SUCCEED, resultB.index, resultB.value)
+            return Node(Status.SUCCEED, resultB.index, resultB.value, resultB.namespace)
         return Node(Status.FAILED, i)
 
 
@@ -95,9 +125,9 @@ class ZeroOrMore(OperatorMixin):
     def parse(self, target, i, values=[]):
         result = self.a.parse(target, i)
         if result.status is False or result.index == i:
-            return Node(Status.SUCCEED, result.index, values)
+            return Node(Status.SUCCEED, result.index, values, result.namespace)
         values.append(result.value)
-        return self.parse(target, result.index, values)
+        return self.parse(target, result.index, values, result.namespace)
 
 
 class Optional(OperatorMixin):
@@ -106,7 +136,7 @@ class Optional(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        return Node(Status.SUCCEED, result.index, result.value)
+        return Node(Status.SUCCEED, result.index, result.value, result.namespace)
 
 
 class Value(OperatorMixin):
@@ -125,7 +155,7 @@ class And(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        return Node(result.status, i)
+        return Node(result.status, i, result.value, result.namespace)
 
 
 class Not(OperatorMixin):
@@ -137,7 +167,7 @@ class Not(OperatorMixin):
         epsParser = Value("")
         if result.status is Status.SUCCEED:
             return Node(Status.FAILED, i)
-        return Node(Status.SUCCEED, i)
+        return Node(Status.SUCCEED, i, result.value, result.namespace)
 
 
 class Map(OperatorMixin):
@@ -149,6 +179,17 @@ class Map(OperatorMixin):
         result = self.a.parse(target, i)
         result.value = self.b(result.value)
         return result
+
+
+class NamespaceMap(OperatorMixin):
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def parse(self, target, i):
+        result = self.a.parse(target, i)
+        result.value = self.b(result.namespace)
+        return Node(result.status, result.index, result.value, {})
 
 
 class FlatMap(OperatorMixin):

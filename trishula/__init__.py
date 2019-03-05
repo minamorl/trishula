@@ -14,4 +14,7 @@ from trishula.grammar import (
     Status,
     Sequence,
     Ref,
+    Namespace,
+    NamedParser,
+    NamespaceMap,
 )

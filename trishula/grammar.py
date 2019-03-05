@@ -127,7 +127,7 @@ class ZeroOrMore(OperatorMixin):
         if result.status is False or result.index == i:
             return Node(Status.SUCCEED, result.index, values, result.namespace)
         values.append(result.value)
-        return self.parse(target, result.index, values, result.namespace)
+        return self.parse(target, result.index, values)
 
 
 class Optional(OperatorMixin):

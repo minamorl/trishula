@@ -5,6 +5,6 @@ setup(
     author_email="minamorl@minamorl.com",
     name="trishula",
     url="https://github.com/minamorl/trishula",
-    version="0.0.2",
+    version="0.0.3",
     packages=find_packages(),
 )

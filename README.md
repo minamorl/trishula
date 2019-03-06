@@ -69,3 +69,28 @@ def main():
 ```
 
 Be aware that `Ref` executes function only once so that parser can be memorized.
+
+## Namespace
+
+Namespace is one of Trishula's powerful features. You can name your parser and retrieve values with map (as dict).
+
+Usage is simple. Mark the parser with `@` operator like `parser @ "name"` and surround with `Namespace(parser)`. Then you can grab values with `Namespace(parser) => fn`. fn is a callable taking dict type and returns new value. 
+
+```python
+import trishula as T
+
+
+def main():
+    grammar = T.Namespace(
+        T.Value("[") >> (T.Regexp(r"[0-9]+") >= (float)) @ "value" >> T.Value("]")
+    ) >= (lambda a_dict: a_dict["value"])
+    result = T.Parser().parse(grammar, "[12345]")
+    print(vars(result))
+    # ==> {'status': <Status.SUCCEED: 1>, 'index': 7, 'value': 12345.0, 'namespace': {}}
+
+
+main()
+```
+
+Note that after mapped function called, internal namespace is cleaned up with empty dict.
+

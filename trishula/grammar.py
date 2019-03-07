@@ -177,7 +177,8 @@ class Map(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        result.value = self.b(result.value)
+        if result.status is Status.SUCCEED:
+            result.value = self.b(result.value)
         return result
 
 

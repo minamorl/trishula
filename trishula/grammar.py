@@ -38,7 +38,7 @@ class OperatorMixin:
         return NamedParser(self, other)
 
 
-class Ref:
+class Ref(OperatorMixin):
     def __init__(self, ref):
         self.ref = ref
         self.parser = None

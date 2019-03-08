@@ -189,7 +189,8 @@ class NamespaceMap(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        result.value = self.b(result.namespace)
+        if result.status is Status.SUCCEED:
+            result.value = self.b(result.namespace)
         return Node(result.status, result.index, result.value, {})
 
 

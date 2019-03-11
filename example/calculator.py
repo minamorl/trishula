@@ -85,6 +85,9 @@ def left_rotation(d):
     if not isinstance(d, dict):
         return d
     if isinstance(d["right"], float):
+        if isinstance(d["left"], dict):
+            d["left"] = left_rotation(d["left"])
+            return d
         return d
     if d["operator"] is operator.add or d["operator"] is operator.sub:
         return right_rotation(d)

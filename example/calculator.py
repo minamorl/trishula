@@ -14,6 +14,7 @@ def realnum(d):
         return float(d["integer"] + "." + d["fractional"])
     return float(d["integer"])
 
+
 term = (
     (
         (-(T.Value("-")) >= (lambda x: -1.0 if x is not None else 1.0))
@@ -39,6 +40,7 @@ def replaceOperator(d, fn):
     d["operator"] = fn
     return d
 
+
 def op(string, fn):
     return T.Namespace(
         ((term | parenthesis) @ "left")
@@ -49,7 +51,7 @@ def op(string, fn):
 
 
 grammar = (
-   op("*", operator.mul)
+    op("*", operator.mul)
     | op("/", operator.truediv)
     | op("+", operator.add)
     | op("-", operator.sub)
@@ -74,9 +76,9 @@ items = (
     "(2 * 3) / 4",
     "1 + 2 / 3",
     "((1)) * 2",
-    "(-1 * (0 - (1 * 2) / 3) / 4 / 5) * 6 / 7"
+    "((1) / 2 / 3) * 5",
+    "(-1 * (0 - (1 * 2) / 3) / 4 / 5) * 6 / 7",
 )
-
 
 
 def left_rotation(d):
@@ -95,6 +97,7 @@ def left_rotation(d):
 
     result = {"left": {"left": A, "operator": P, "right": B}, "operator": Q, "right": C}
     return left_rotation(result)
+
 
 def right_rotation(d):
     if not isinstance(d, dict):
@@ -117,8 +120,6 @@ def calc(d):
     left = calc(d["left"])
     right = calc(d["right"])
     return d["operator"](left, right)
-
-
 
 
 for x in items:

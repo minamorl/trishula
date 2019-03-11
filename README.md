@@ -26,6 +26,8 @@ print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
 # }
 ```
 
+You can see calcurator example in ["example" directory](https://github.com/minamorl/trishula/blob/master/example/calcurator.py). 
+
 ## Description
 
 Grammers can be defined by **Value** and **Regexp** primitive and operators. Below we describe operators.

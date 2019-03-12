@@ -78,8 +78,15 @@ items = (
     "((1)) * 2",
     "((1) / 2 / 3) * 5",
     "(-1 * (0 - (1 * 2) / 3) / 4 / 5) * 6 / 7",
+    "1 - 1 - 1",
 )
 
+
+def rotation(d):
+    if not isinstance(d, dict):
+        return d
+
+    return left_rotation(d)
 
 def left_rotation(d):
     if not isinstance(d, dict):
@@ -89,8 +96,9 @@ def left_rotation(d):
             d["left"] = left_rotation(d["left"])
             return d
         return d
-    if d["operator"] is operator.add or d["operator"] is operator.sub:
+    if d["operator"] is operator.add or d["operator"] is operator.sub and not isinstance(d["left"], float):
         return right_rotation(d)
+
 
     A = d["left"]
     B = d["right"]["left"]
@@ -106,6 +114,9 @@ def right_rotation(d):
     if not isinstance(d, dict):
         return d
     if isinstance(d["left"], float):
+        if isinstance(d["right"], dict):
+            d["right"] = right_rotation(d["right"])
+            return d
         return d
     A = d["left"]["left"]
     B = d["left"]["right"]
@@ -127,12 +138,13 @@ def calc(d):
 
 for x in items:
     result = T.Parser().parse(grammar, x).value
-    if float(eval(x)) != calc(left_rotation(result)):
+    value = calc(rotation(result))
+    if float(eval(x)) != value:
         pprint.pprint(((result)))
-        pprint.pprint((left_rotation(result)))
+        pprint.pprint((rotation(result)))
         print(x)
         print(float(eval(x)))
-        print(calc(left_rotation(result)))
+        print(value)
 
         print()
     else:

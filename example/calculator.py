@@ -31,9 +31,16 @@ term = (
 
 space = T.Value(" ")
 
-parenthesis = T.Namespace(
-    T.Value("(") >> (T.Ref(lambda: grammar) @ "value") >> T.Value(")")
-) >= (lambda d: d["value"])
+
+def mark_as_parenthesis(d):
+    d["parenthesis"] = True
+    return d
+
+
+parenthesis = (
+    T.Namespace(T.Value("(") >> (T.Ref(lambda: grammar) @ "value") >> T.Value(")"))
+    >= mark_as_parenthesis
+)
 
 
 def replaceOperator(d, fn):
@@ -79,6 +86,9 @@ items = (
     "((1) / 2 / 3) * 5",
     "(-1 * (0 - (1 * 2) / 3) / 4 / 5) * 6 / 7",
     "1 - 1 - 1",
+    "1 - -1 - 1 - -1 - 1",
+    "(1 - 2 - 3)",
+    "(1 - (-2 + 3 * 4) - 3) / 5 * (1 + 2 + 3)",
 )
 
 
@@ -92,17 +102,24 @@ def rotation(d):
 def left_rotation(d):
     if not isinstance(d, dict):
         return d
-    if isinstance(d["right"], float):
+
+    if "parenthesis" in d:
+        d["value"] = left_rotation(d["value"])
+        return d
+
+    if isinstance(d["right"], float) or "parenthesis" in d["right"]:
         if isinstance(d["left"], dict):
             d["left"] = left_rotation(d["left"])
             return d
         return d
-    if (
-        d["operator"] is operator.add
-        or d["operator"] is operator.sub
-        and not isinstance(d["left"], float)
-    ):
-        return right_rotation(d)
+
+    if d["operator"] is operator.add or d["operator"] is operator.sub:
+        if (
+            "operator" in d["right"]
+            and d["right"]["operator"] is operator.truediv
+            or d["right"]["operator"] is operator.mul
+        ):
+            return d
 
     A = d["left"]
     B = d["right"]["left"]
@@ -114,27 +131,11 @@ def left_rotation(d):
     return left_rotation(result)
 
 
-def right_rotation(d):
-    if not isinstance(d, dict):
-        return d
-    if isinstance(d["left"], float):
-        if isinstance(d["right"], dict):
-            d["right"] = right_rotation(d["right"])
-            return d
-        return d
-    A = d["left"]["left"]
-    B = d["left"]["right"]
-    C = d["right"]
-    P = d["left"]["operator"]
-    Q = d["operator"]
-
-    result = {"left": A, "operator": P, "right": {"left": B, "operator": Q, "right": C}}
-    return right_rotation(result)
-
-
 def calc(d):
     if not isinstance(d, dict):
         return d
+    if "parenthesis" in d:
+        return calc(d["value"])
     left = calc(d["left"])
     right = calc(d["right"])
     return d["operator"](left, right)

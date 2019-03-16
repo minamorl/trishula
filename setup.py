@@ -10,6 +10,6 @@ setup(
     url="https://github.com/minamorl/trishula",
     description="The modern PEG parser combinator for python",
     long_description=long_description,
-    version="0.0.5",
+    version="0.0.6",
     packages=find_packages(),
 )

@@ -123,7 +123,8 @@ class ZeroOrMore(OperatorMixin):
     def __init__(self, a):
         self.a = a
 
-    def parse(self, target, i, values=[]):
+    def parse(self, target, i, values=None):
+        values = values or []
         result = self.a.parse(target, i)
         if result.status is False or result.index == i:
             return Node(Status.SUCCEED, result.index, values, result.namespace)

@@ -114,7 +114,8 @@ class OneOrMore(OperatorMixin):
 
     def parse(self, target, i):
         result = (self.a >> ZeroOrMore(self.a)).parse(target, i)
-        result.value = [result.value[0], *result.value[1]]
+        if result.status == Status.SUCCEED:
+            result.value = [result.value[0], *result.value[1]]
         return result
 
 

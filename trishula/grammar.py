@@ -1,4 +1,7 @@
 import re
+from collections import namedtuple
+
+Index = namedtuple("Index", ("offset", "line", "column"))
 
 
 class Success:
@@ -230,6 +233,35 @@ class Regexp(OperatorMixin):
         if matched:
             return Success(i + matched.end(), matched.group())
         return Failure(i)
+
+
+class _FnWrapper(OperatorMixin):
+    def __init__(self, fn):
+        self.fn = fn
+
+    def parse(self, target, i):
+        return self.fn(target, i)
+
+
+def _index(target, i):
+    splitted = target[:i].split("\n")
+    line = len(splitted)
+    column = len(splitted[-1]) + 1
+    return Success(i, Index(i, line, column))
+
+
+index = _FnWrapper(_index)
+
+
+def sep_by1(content, separator):
+    single = content >= (lambda x: [x])
+    another = (separator >> content) >= (lambda x: x[1])
+    multi = (content >> +another) >= (lambda x: [x[0], *x[1]])
+    return multi | single
+
+
+def sep_by(content, separator):
+    return sep_by1(content, separator) | (T.Value("") >= (lambda _: []))
 
 
 class Parser:

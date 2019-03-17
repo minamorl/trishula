@@ -96,3 +96,36 @@ main()
 
 Note that after mapped function called, internal namespace is cleaned up with empty dict.
 
+
+## Conditional parsing
+
+You can do something like this:
+```python
+def main():
+    def cond(value):
+        d = {
+            "(": ")",
+            "{": "}",
+            "[": "]",
+        }
+        return T.Value(d.get(value[0]))
+
+
+    grammar = T.Namespace(
+        T.Value("[")
+        >> +(T.Regexp(r"[a-z]") | T.Value("\n")) @ "value"
+        >> T.Conditional(cond)
+    )
+    result = T.Parser().parse(grammar, "[abcd\n\nefg]")
+    print(result)
+
+
+main()
+```
+
+`Conditional` take one argument that receive a value and return parser. It runs dynamically so that you can choose a parser at runtime.
+
+
+## Utils
+
+There are `sep_by`, `sep_by1`, and `index`.

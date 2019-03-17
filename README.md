@@ -26,7 +26,7 @@ print(vars(Parser().parse(grammar, "aaaccceeeeeeeeeeeefgaaa")))
 # }
 ```
 
-You can see calculator example in ["example" directory](https://github.com/minamorl/trishula/blob/master/example/calculator.py). 
+You can see examples in ["example" directory](https://github.com/minamorl/trishula/blob/master/example) (execute it under example directory). 
 
 ## Description
 

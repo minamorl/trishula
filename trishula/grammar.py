@@ -31,8 +31,8 @@ class Failure:
 
 class OperatorMixin:
     def __rshift__(self, other):
-        if isinstance(other, Condition):
-            return ConditionSequence(self, other)
+        if isinstance(other, Conditional):
+            return ConditionalSequence(self, other)
         return Sequence(self, other)
 
     def __or__(self, other):
@@ -54,7 +54,7 @@ class OperatorMixin:
         return NamedParser(self, other)
 
 
-class Condition(OperatorMixin):
+class Conditional(OperatorMixin):
     def __init__(self, condition):
         self.condition = condition
 
@@ -114,7 +114,7 @@ class Sequence(OperatorMixin):
         return Failure(i)
 
 
-class ConditionSequence(OperatorMixin):
+class ConditionalSequence(OperatorMixin):
     def __init__(self, a, b):
         self.a = a
         self.b = b

@@ -2,6 +2,8 @@ from trishula.grammar import (
     index,
     sep_by1,
     sep_by,
+    Conditional,
+    ConditionalSequence,
     Success,
     Failure,
     Regexp,

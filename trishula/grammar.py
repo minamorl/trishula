@@ -31,6 +31,8 @@ class Failure:
 
 class OperatorMixin:
     def __rshift__(self, other):
+        if isinstance(other, Conditional):
+            return ConditionalSequence(self, other)
         return Sequence(self, other)
 
     def __or__(self, other):
@@ -50,6 +52,15 @@ class OperatorMixin:
 
     def __matmul__(self, other):
         return NamedParser(self, other)
+
+
+class Conditional(OperatorMixin):
+    def __init__(self, condition):
+        self.condition = condition
+
+    def parse(self, target, i, result):
+        parser = self.condition(result)
+        return parser.parse(target, i)
 
 
 class Ref(OperatorMixin):
@@ -96,6 +107,22 @@ class Sequence(OperatorMixin):
         resultA = self.a.parse(target, i)
         if resultA.isSuccess():
             resultB = self.b.parse(target, resultA.index)
+            if resultB.isSuccess():
+                namespace = resultA.namespace
+                namespace.update(resultB.namespace)
+                return Success(resultB.index, [resultA.value, resultB.value], namespace)
+        return Failure(i)
+
+
+class ConditionalSequence(OperatorMixin):
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def parse(self, target, i):
+        resultA = self.a.parse(target, i)
+        if resultA.isSuccess():
+            resultB = self.b.parse(target, resultA.index, resultA.value)
             if resultB.isSuccess():
                 namespace = resultA.namespace
                 namespace.update(resultB.namespace)

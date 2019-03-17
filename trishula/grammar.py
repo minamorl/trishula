@@ -1,18 +1,29 @@
-from enum import Enum, auto
 import re
 
 
-class Status(Enum):
-    SUCCEED = auto()
-    FAILED = auto()
-
-
-class Node:
-    def __init__(self, status, index, value=None, namespace=None):
-        self.status = status
+class Success:
+    def __init__(self, index, value=None, namespace=None):
         self.index = index
         self.value = value
         self.namespace = namespace or dict()
+
+    def isSuccess(self):
+        return True
+
+    def __repr__(self):
+        return f"<Success index='{self.index}' value='{self.value}' namespace='{self.namespace}'>"
+
+
+class Failure:
+    def __init__(self, index, message=None):
+        self.index = index
+        self.message = message
+
+    def isSuccess(self):
+        return False
+
+    def __repr__(self):
+        return f"<Failure index='{self.index}' message='{self.message}'>"
 
 
 class OperatorMixin:
@@ -56,7 +67,8 @@ class NamedParser(OperatorMixin):
 
     def parse(self, target, i):
         result = self.parser.parse(target, i)
-        result.namespace[self.name] = result.value
+        if result.isSuccess():
+            result.namespace[self.name] = result.value
         return result
 
 
@@ -79,18 +91,13 @@ class Sequence(OperatorMixin):
 
     def parse(self, target, i):
         resultA = self.a.parse(target, i)
-        if resultA.status is Status.SUCCEED:
+        if resultA.isSuccess():
             resultB = self.b.parse(target, resultA.index)
-            if resultB.status is Status.SUCCEED:
+            if resultB.isSuccess():
                 namespace = resultA.namespace
                 namespace.update(resultB.namespace)
-                return Node(
-                    Status.SUCCEED,
-                    resultB.index,
-                    [resultA.value, resultB.value],
-                    namespace,
-                )
-        return Node(Status.FAILED, i)
+                return Success(resultB.index, [resultA.value, resultB.value], namespace)
+        return Failure(i)
 
 
 class OrderedChoice(OperatorMixin):
@@ -100,12 +107,12 @@ class OrderedChoice(OperatorMixin):
 
     def parse(self, target, i):
         resultA = self.a.parse(target, i)
-        if resultA.status is Status.SUCCEED:
-            return Node(Status.SUCCEED, resultA.index, resultA.value, resultA.namespace)
+        if resultA.isSuccess():
+            return resultA
         resultB = self.b.parse(target, resultA.index)
-        if resultB.status is Status.SUCCEED:
-            return Node(Status.SUCCEED, resultB.index, resultB.value, resultB.namespace)
-        return Node(Status.FAILED, i)
+        if resultB.isSuccess():
+            return resultB
+        return Failure(i)
 
 
 class OneOrMore(OperatorMixin):
@@ -114,7 +121,7 @@ class OneOrMore(OperatorMixin):
 
     def parse(self, target, i):
         result = (self.a >> ZeroOrMore(self.a)).parse(target, i)
-        if result.status == Status.SUCCEED:
+        if result.isSuccess():
             result.value = [result.value[0], *result.value[1]]
         return result
 
@@ -126,8 +133,8 @@ class ZeroOrMore(OperatorMixin):
     def parse(self, target, i, values=None):
         values = values or []
         result = self.a.parse(target, i)
-        if result.status is False or result.index == i:
-            return Node(Status.SUCCEED, result.index, values, result.namespace)
+        if result.index == i:
+            return Success(result.index, values)
         values.append(result.value)
         return self.parse(target, result.index, values)
 
@@ -138,7 +145,9 @@ class Optional(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        return Node(Status.SUCCEED, result.index, result.value, result.namespace)
+        if result.isSuccess():
+            return Success(result.index, result.value, result.namespace)
+        return Success(result.index)
 
 
 class Value(OperatorMixin):
@@ -147,8 +156,8 @@ class Value(OperatorMixin):
 
     def parse(self, target, i):
         if target[i : i + len(self.val)] == self.val:
-            return Node(Status.SUCCEED, i + len(self.val), self.val)
-        return Node(Status.FAILED, i)
+            return Success(i + len(self.val), self.val)
+        return Failure(i)
 
 
 class And(OperatorMixin):
@@ -157,7 +166,8 @@ class And(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        return Node(result.status, i, result.value, result.namespace)
+        result.index = i
+        return result
 
 
 class Not(OperatorMixin):
@@ -167,9 +177,9 @@ class Not(OperatorMixin):
     def parse(self, target, i):
         result = self.a.parse(target, i)
         epsParser = Value("")
-        if result.status is Status.SUCCEED:
-            return Node(Status.FAILED, i)
-        return Node(Status.SUCCEED, i, result.value, result.namespace)
+        if result.isSuccess():
+            return Failure(i)
+        return Success(i, result.value, result.namespace)
 
 
 class Map(OperatorMixin):
@@ -179,7 +189,7 @@ class Map(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        if result.status is Status.SUCCEED:
+        if result.isSuccess():
             result.value = self.b(result.value)
         return result
 
@@ -191,9 +201,9 @@ class NamespaceMap(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        if result.status is Status.SUCCEED:
-            result.value = self.b(result.namespace)
-        return Node(result.status, result.index, result.value, {})
+        if result.isSuccess():
+            return Success(result.index, self.b(result.namespace), {})
+        return Failure(result.index)
 
 
 class FlatMap(OperatorMixin):
@@ -208,8 +218,6 @@ class FlatMap(OperatorMixin):
 
 class Regexp(OperatorMixin):
     def __init__(self, regexp):
-        if isinstance(regexp, re.Pattern):
-            regexp = regexp.pattern
         self.regexp = regexp
 
     def _anchored(self, regexp):
@@ -220,15 +228,13 @@ class Regexp(OperatorMixin):
         regexp = self._anchored(self.regexp)
         matched = re.match(regexp, target[i:])
         if matched:
-            return Node(Status.SUCCEED, i + matched.end(), matched.group())
-        return Node(Status.FAILED, i)
+            return Success(i + matched.end(), matched.group())
+        return Failure(i)
 
 
 class Parser:
     def parse(self, grammar, string):
         result = grammar.parse(string, 0)
-        return Node(
-            Status.SUCCEED if result.index == len(string) else Status.FAILED,
-            result.index,
-            result.value,
-        )
+        if result.index == len(string):
+            return Success(result.index, result.value)
+        return Failure(result.index)

@@ -23,3 +23,4 @@ from trishula.grammar import (
     NamedParser,
     NamespaceMap,
 )
+from trishula.decorator import define_parser

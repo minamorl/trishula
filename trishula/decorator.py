@@ -1,11 +1,14 @@
 from .grammar import _FnWrapper, Success
 import sys
 
+
 class ResultEmurator:
     def __len__(self):
         return sys.maxsize
+
     def __getattr__(self, key):
         return self
+
     def __getitem__(self, key):
         return self
 

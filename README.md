@@ -132,7 +132,7 @@ There are `sep_by`, `sep_by1`, and `index`.
 
 ## Generator
 
-```
+```python
 import trishula as T
 
 
@@ -142,7 +142,7 @@ def parser():
     v = yield T.Value("bbb")
     yield T.Value("ccc")
     # Do not forget to return a value
-    yield v
+    raise GeneratorResult(v)
 
 print(T.Parser().parse(parser, "aaabbbccc"))
 # ==> <Success index='9' value='bbb' namespace='{}'>

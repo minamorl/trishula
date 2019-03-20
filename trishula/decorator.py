@@ -1,4 +1,24 @@
 from .grammar import _FnWrapper, Success
+import sys
+
+class ResultEmurator:
+    def __len__(self):
+        return sys.maxsize
+    def __getattr__(self, key):
+        return self
+    def __getitem__(self, key):
+        return self
+
+
+class GeneratorResult(Exception):
+    def __init__(self, result):
+        super().__init__(f"Generator result is {result}")
+        self.result = result
+
+
+class GeneratorError(Exception):
+    def __init__(self, result):
+        pass
 
 
 def define_parser(fn):
@@ -6,7 +26,7 @@ def define_parser(fn):
         a = generator_wrapper(fn())
         b = generator_wrapper(fn())
         grammars = collect_grammars(a)
-        results = [None]
+        results = []
         current_index = i
         for p in grammars:
             result = p.parse(s, current_index)
@@ -28,16 +48,26 @@ def generator_wrapper(generator):
 def collect_grammars(generator):
     next(generator)
     grammars = []
-    for x in generator:
-        grammars.append(x)
-    grammars = grammars[:-1]
+    try:
+        while True:
+            grammars.append(generator.send(ResultEmurator()))
+    except GeneratorResult as e:
+        pass
     return grammars
 
 
 def send_back(generator, results):
     next(generator)
+    next(generator)
     x = None
-    for r in results:
-        x = generator.send(r)
-    # retrive final value
-    return x
+    try:
+        i = 0
+        while True:
+            x = generator.send(results[i])
+            i += 1
+    except GeneratorResult as e:
+        return e.result
+    else:
+        raise GeneratorError(
+            "Parser cannot find a result. Raise GeneratorResult to return values."
+        )

@@ -11,7 +11,7 @@ def define_parser(fn):
         for p in grammars:
             result = p.parse(s, current_index)
             current_index = result.index
-            if not result.isSuccess():
+            if not result.is_success():
                 return result
             results.append(result.value)
         return Success(current_index, send_back(b, results))

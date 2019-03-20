@@ -5,6 +5,7 @@ from trishula.decorator import (
     GeneratorResult,
     send_back,
     ResultEmurator,
+    define_parser,
 )
 
 import unittest
@@ -12,7 +13,7 @@ import unittest
 
 def parser():
     yield T.Value("a")
-    a = yield (T.Regexp(r"[a-z]") >> -T.Regexp(r"[a-z]"))
+    a = yield (T.Regexp(r"[a-z]") >> T.Value("b"))
     if a[0] == "a":
         raise GeneratorResult("found a")
     yield T.Value("a")
@@ -40,6 +41,11 @@ class TestGenerator(unittest.TestCase):
         self.assertEqual(e["a"], e)
         self.assertEqual(e.a.b, e)
         self.assertEqual(e[1], e)
+
+    def test_define_parser(self):
+        p = define_parser(parser)
+        self.assertEqual(p.parse("aaba", 0).value, "found a")
+        self.assertEqual(p.parse("acba", 0).value, ["c", "b"])
 
 
 if __name__ == "__main__":

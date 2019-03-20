@@ -10,7 +10,7 @@ class Success:
         self.value = value
         self.namespace = namespace or dict()
 
-    def isSuccess(self):
+    def is_success(self):
         return True
 
     def __repr__(self):
@@ -22,7 +22,7 @@ class Failure:
         self.index = index
         self.message = message
 
-    def isSuccess(self):
+    def is_success(self):
         return False
 
     def __repr__(self):
@@ -81,7 +81,7 @@ class NamedParser(OperatorMixin):
 
     def parse(self, target, i):
         result = self.parser.parse(target, i)
-        if result.isSuccess():
+        if result.is_success():
             result.namespace[self.name] = result.value
         return result
 
@@ -105,9 +105,9 @@ class Sequence(OperatorMixin):
 
     def parse(self, target, i):
         resultA = self.a.parse(target, i)
-        if resultA.isSuccess():
+        if resultA.is_success():
             resultB = self.b.parse(target, resultA.index)
-            if resultB.isSuccess():
+            if resultB.is_success():
                 namespace = resultA.namespace
                 namespace.update(resultB.namespace)
                 return Success(resultB.index, [resultA.value, resultB.value], namespace)
@@ -121,9 +121,9 @@ class ConditionalSequence(OperatorMixin):
 
     def parse(self, target, i):
         resultA = self.a.parse(target, i)
-        if resultA.isSuccess():
+        if resultA.is_success():
             resultB = self.b.parse(target, resultA.index, resultA.value)
-            if resultB.isSuccess():
+            if resultB.is_success():
                 namespace = resultA.namespace
                 namespace.update(resultB.namespace)
                 return Success(resultB.index, [resultA.value, resultB.value], namespace)
@@ -137,10 +137,10 @@ class OrderedChoice(OperatorMixin):
 
     def parse(self, target, i):
         resultA = self.a.parse(target, i)
-        if resultA.isSuccess():
+        if resultA.is_success():
             return resultA
         resultB = self.b.parse(target, resultA.index)
-        if resultB.isSuccess():
+        if resultB.is_success():
             return resultB
         return Failure(i)
 
@@ -151,7 +151,7 @@ class OneOrMore(OperatorMixin):
 
     def parse(self, target, i):
         result = (self.a >> ZeroOrMore(self.a)).parse(target, i)
-        if result.isSuccess():
+        if result.is_success():
             result.value = [result.value[0], *result.value[1]]
         return result
 
@@ -175,7 +175,7 @@ class Optional(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        if result.isSuccess():
+        if result.is_success():
             return Success(result.index, result.value, result.namespace)
         return Success(result.index)
 
@@ -207,7 +207,7 @@ class Not(OperatorMixin):
     def parse(self, target, i):
         result = self.a.parse(target, i)
         epsParser = Value("")
-        if result.isSuccess():
+        if result.is_success():
             return Failure(i)
         return Success(i, result.value, result.namespace)
 
@@ -219,7 +219,7 @@ class Map(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        if result.isSuccess():
+        if result.is_success():
             result.value = self.b(result.value)
         return result
 
@@ -231,7 +231,7 @@ class NamespaceMap(OperatorMixin):
 
     def parse(self, target, i):
         result = self.a.parse(target, i)
-        if result.isSuccess():
+        if result.is_success():
             return Success(result.index, self.b(result.namespace), {})
         return Failure(result.index)
 

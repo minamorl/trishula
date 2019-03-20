@@ -143,7 +143,7 @@ def main():
         result = T.Parser().parse(json_value, ex)
         print()
         print()
-        if result.isSuccess():
+        if result.is_success():
             print("Input :", repr(ex))
             print("Value :", repr(result.value))
         else:
